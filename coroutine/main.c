@@ -1,7 +1,7 @@
 #include "coroutine.h"
 #include <stdio.h>
 
-// ÎÒÃÇÒ»ÆðÀ´½âÎöÒ»ÏÂÐ­³Ì°É£¡
+// æˆ‘ä»¬ä¸€èµ·æ¥è§£æžä¸€ä¸‹åç¨‹å§ï¼
 struct args {
 	int n;
 };
@@ -11,9 +11,20 @@ foo(struct schedule * S, void *ud) {
 	struct args * arg = ud;
 	int start = arg->n;
 	int i;
-	for (i = 0; i < 5; i++) {
+	for (i = 0; i < 10; i++) {
 		printf("coroutine %d : %d\n", coroutine_running(S), start + i);
-		coroutine_yield(S); // ºÃ°É£¬¾ÓÈ»Ò²ÓÐËùÎ½µÄyield£¬ÓÐÈ¤¼«ÁË£¡
+		coroutine_yield(S); // å¥½å§ï¼Œå±…ç„¶ä¹Ÿæœ‰æ‰€è°“çš„yieldï¼Œæœ‰è¶£æžäº†ï¼
+	}
+}
+
+static void
+foo2(struct schedule * S, void *ud) {
+	struct args * arg = ud;
+	int start = arg->n;
+	int i;
+	for (i = 0; i < 2; i++) {
+		printf("coroutine %d : %d\n", coroutine_running(S), start + i);
+		coroutine_yield(S); // å¥½å§ï¼Œå±…ç„¶ä¹Ÿæœ‰æ‰€è°“çš„yieldï¼Œæœ‰è¶£æžäº†ï¼
 	}
 }
 
@@ -23,10 +34,10 @@ test(struct schedule *S) {
 	struct args arg2 = { 100 };
 
 	int co1 = coroutine_new(S, foo, &arg1);
-	int co2 = coroutine_new(S, foo, &arg2);
+	int co2 = coroutine_new(S, foo2, &arg2);
 	printf("main start\n");
-	while (coroutine_status(S, co1) && coroutine_status(S, co2)) {
-		coroutine_resume(S, co1); // ÓÃÓÚ»Ö¸´Ð­³ÌÂð£¿
+	while (coroutine_status(S, co1) || coroutine_status(S, co2)) {
+		coroutine_resume(S, co1); // ç”¨äºŽæ¢å¤åç¨‹å—ï¼Ÿ
 		coroutine_resume(S, co2);
 	}
 	printf("main end\n");
